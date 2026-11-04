@@ -16,3 +16,18 @@ jobs:
       - name: Install and syntax-check server
         working-directory: server
         run: npm ci && npm run check
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.12.0
+        with:
+          mongodb-version: '7.0'
+      - name: API integration smoke test
+        working-directory: server
+        env:
+          MONGO_URI: mongodb://127.0.0.1:27017/novatech_ci
+          JWT_SECRET: ci-test-secret-not-for-real-world-use-123456789
+          ADMIN_EMAIL: ci-admin@example.test
+          CLIENT_ORIGIN: http://localhost:5173
+          PORT: '5000'
+        run: |
+          node index.js > /tmp/novatech-api.log 2>&1 &
+          npm test || (cat /tmp/novatech-api.log && exit 1)
