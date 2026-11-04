@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+:root {
+  --primary-color: #0d6efd;
+  --dark-bg: #0f172a;
+  --light-bg: #f8f9fa;
+  --card-hover: #ffffff;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--light-bg);
+  color: #333;
+  overflow-x: hidden;
+}
+
+/* --- Animations --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+/* --- Professional Cards --- */
+.service-card {
+  transition: all 0.3s ease-in-out;
+  border: none;
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(13, 110, 253, 0.15);
+  border-bottom: 4px solid var(--primary-color);
+}
+
+.icon-box {
+  background: rgba(13, 110, 253, 0.1);
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  color: var(--primary-color);
+  font-size: 30px;
+  transition: 0.3s;
+}
+
+.service-card:hover .icon-box {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* --- Dashboard Widgets --- */
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border-left: 5px solid var(--primary-color);
+  transition: 0.3s;
+}
+.stat-card:hover {
+  transform: scale(1.02);
+}
