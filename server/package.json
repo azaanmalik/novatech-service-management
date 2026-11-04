@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "check": "node --check index.js && node --check scripts/promote-admin.js",
+    "promote-admin": "node scripts/promote-admin.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "description": "",
+  "license": "MIT",
+  "description": "NovaTech service management REST API",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
