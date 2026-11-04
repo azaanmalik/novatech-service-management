@@ -18,8 +18,8 @@ app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173' }));
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("✅ MongoDB Connected"))
-.catch(err => console.log(err));
+.then(() => console.log('MongoDB Connected'))
+.catch(err => { console.error('MongoDB connection failed:', err.message); process.exitCode = 1; });
 
 const createNotification = async (userId, message, type) => {
     try {
@@ -209,7 +209,25 @@ app.put('/api/user/update/:id', authenticate, async (req, res) => {
     } catch (error) { res.status(500).json({ error: "Update Failed" }); }
 });
 
-app.post('/api/contact', (req, res) => res.status(501).json({ error: 'Contact form delivery is not configured' }));
+app.post('/api/contact', async (req, res) => {
+    try {
+        const { name, email, message } = req.body || {};
+        if (typeof name !== 'string' || name.trim().length < 2 || name.length > 100 ||
+            typeof email !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254 ||
+            typeof message !== 'string' || message.trim().length < 10 || message.length > 5000)
+            return res.status(400).json({ error: 'Please provide valid contact details and a message of at least 10 characters' });
+        await Contact.create({ name: name.trim(), email: email.trim().toLowerCase(), message: message.trim() });
+        await createNotification('admin', 'New contact inquiry received', 'info');
+        return res.status(201).json({ message: 'Inquiry received and saved' });
+    } catch (error) { return res.status(500).json({ error: 'Unable to save inquiry' }); }
+});
+
+app.get('/api/admin/contacts', authenticate, adminOnly, async (req, res) => {
+    try { return res.json(await Contact.find().sort({ date: -1 }).limit(100)); }
+    catch (_) { return res.status(500).json({ error: 'Unable to load inquiries' }); }
+});
+
+app.get('/api/health', (req, res) => res.json({ status: mongoose.connection.readyState === 1 ? 'ok' : 'unavailable' }));
 
 const PORT = Number(process.env.PORT) || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
