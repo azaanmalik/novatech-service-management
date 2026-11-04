@@ -17,10 +17,10 @@ const Contact = () => {
     setLoading(true);
     try {
       await api.post('/api/contact', formData);
-      toast.success("Message Sent Successfully!", { theme: "colored" });
+      toast.success("Inquiry saved successfully!", { theme: "colored" });
       setFormData({ name: '', email: '', message: '' });
     } catch (error) {
-      toast.error("Failed to send message.", { theme: "colored" });
+      toast.error("Unable to save your inquiry.", { theme: "colored" });
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ const Contact = () => {
               </Form.Group>
 
               <Button variant="dark" type="submit" className="w-100 rounded-pill" disabled={loading}>
-                {loading ? "Sending..." : "Send Message"}
+                {loading ? "Saving..." : "Submit Inquiry"}
               </Button>
             </Form>
           </Card>
