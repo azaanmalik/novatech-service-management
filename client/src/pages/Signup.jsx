@@ -19,7 +19,7 @@ const Signup = () => {
   const navigate = useNavigate();
 
   // Strong Password Regex
-  const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/;
+  const passwordRegex = /^(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,128}$/;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -34,7 +34,7 @@ const Signup = () => {
     }
 
     if (!passwordRegex.test(formData.password)) {
-      return toast.warning("Password must be 6+ chars, with 1 number & 1 special char (!@#$)", { theme: "colored" });
+      return toast.warning("Password must be 8+ characters, including a number and special character", { theme: "colored" });
     }
 
     setLoading(true);
