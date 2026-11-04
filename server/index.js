@@ -42,23 +42,24 @@ const authenticate = async (req, res, next) => {
 };
 const adminOnly = (req, res, next) => req.authUser.role === 'admin'
     ? next() : res.status(403).json({ error: 'Admin access required' });
-const selfOrAdmin = (param) => (req, res, next) =>
-    req.authUser.role === 'admin' || String(req.authUser._id) === String(req.params[param])
-        ? next() : res.status(403).json({ error: 'Access denied' });
 const validId = (id) => mongoose.isValidObjectId(id);
 
 // --- AUTH ROUTES ---
 app.post('/api/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
-        const existingUser = await User.findOne({ email });
+        if (typeof name !== 'string' || name.trim().length < 2 || name.length > 100 ||
+            typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+            typeof password !== 'string' || password.length < 8 || password.length > 128)
+            return res.status(400).json({ error: 'Provide valid name, email and password (8+ characters)' });
+        const normalizedEmail = email.trim().toLowerCase();
+        const existingUser = await User.findOne({ email: normalizedEmail });
         if (existingUser) return res.status(400).json({ error: "Email exists" });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
-        const role = adminEmail && email.trim().toLowerCase() === adminEmail ? 'admin' : 'user';
+        const role = 'user'; // Admin roles are assigned out-of-band using scripts/promote-admin.js
 
-        const newUser = new User({ name, email, password: hashedPassword, role });
+        const newUser = new User({ name: name.trim(), email: normalizedEmail, password: hashedPassword, role });
         await newUser.save();
         if(role === 'user') await createNotification('admin', `New User: ${name}`, 'info');
 
@@ -69,7 +70,7 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: String(email || '').trim().toLowerCase() });
         if (!user) return res.status(404).json({ error: "User not found" });
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -106,7 +107,8 @@ app.put('/api/admin/update-status/:id', authenticate, adminOnly, async (req, res
         const { status } = req.body;
         if (!['Pending', 'Approved', 'Rejected'].includes(status))
             return res.status(400).json({ error: 'Invalid status' });
-        const booking = await Enrollment.findByIdAndUpdate(req.params.id, { status });
+        const booking = validId(req.params.id) ? await Enrollment.findByIdAndUpdate(req.params.id, { status }) : null;
+        if (!booking) return res.status(404).json({ error: 'Booking not found' });
         if(booking) {
             const type = status === 'Approved' ? 'success' : 'error';
             await createNotification(booking.userId, `Request ${status}: ${booking.serviceName}`, type);
@@ -119,7 +121,8 @@ app.put('/api/admin/update-status/:id', authenticate, adminOnly, async (req, res
 app.post('/api/enroll', authenticate, async (req, res) => {
     try {
         
-        const { userId, userName, serviceName } = req.body;
+        const { userId, serviceName } = req.body;
+        const userName = req.authUser.name;
         if (!validId(userId) || String(req.authUser._id) !== String(userId))
             return res.status(403).json({ error: 'Cannot create bookings for another account' });
         if (typeof serviceName !== 'string' || !serviceName.trim())
@@ -196,14 +199,17 @@ app.put('/api/user/update/:id', authenticate, async (req, res) => {
         if (String(req.authUser._id) !== req.params.id)
             return res.status(403).json({ error: 'Access denied' });
         const { name, password } = req.body;
-        const updateData = { name };
+        if (typeof name !== 'string' || name.trim().length < 2 || name.length > 100 ||
+            (password && (typeof password !== 'string' || password.length < 8 || password.length > 128)))
+            return res.status(400).json({ error: 'Invalid profile details' });
+        const updateData = { name: name.trim() };
         if (password) updateData.password = await bcrypt.hash(password, 10);
         const updatedUser = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
         res.json({ success: true, user: { id: updatedUser._id, name: updatedUser.name, email: updatedUser.email, role: updatedUser.role } });
     } catch (error) { res.status(500).json({ error: "Update Failed" }); }
 });
 
-app.post('/api/contact', async (req, res) => { /* Contact logic same as before */ res.json({msg: "OK"}); });
+app.post('/api/contact', (req, res) => res.status(501).json({ error: 'Contact form delivery is not configured' }));
 
 const PORT = Number(process.env.PORT) || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
