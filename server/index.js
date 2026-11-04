@@ -213,7 +213,7 @@ app.post('/api/contact', async (req, res) => {
     try {
         const { name, email, message } = req.body || {};
         if (typeof name !== 'string' || name.trim().length < 2 || name.length > 100 ||
-            typeof email !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254 ||
+            typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 ||
             typeof message !== 'string' || message.trim().length < 10 || message.length > 5000)
             return res.status(400).json({ error: 'Please provide valid contact details and a message of at least 10 characters' });
         await Contact.create({ name: name.trim(), email: email.trim().toLowerCase(), message: message.trim() });
