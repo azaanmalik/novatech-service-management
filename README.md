@@ -25,7 +25,7 @@ Full-stack web engineering project for managing digital service requests, bookin
 5. In another terminal copy `client/.env.example` to `client/.env`, then run `cd client && npm ci && npm run dev`.
 6. Open the local Vite URL shown in the terminal.
 
-Never commit `.env` files. Administrator promotion is a separate local database operation; never expose it as a public API. The contact endpoint currently returns HTTP 501 because no email delivery provider is configured.
+Never commit `.env` files. Administrator promotion is a separate local database operation; never expose it as a public API. Contact inquiries are validated and saved in MongoDB, and administrators can retrieve them through `GET /api/admin/contacts` with an admin bearer token. This is **not email delivery**; no email provider is configured.
 
 ## Structure
 
@@ -35,7 +35,7 @@ server/    Express API, auth, MongoDB models
 .github/   automated validation
 ```
 
-## Security
+## Verification\n\nGitHub Actions builds the React frontend and runs MongoDB-backed API integration smoke tests for registration, login, authorization, booking, and contact inquiry persistence. These checks do not replace manual browser testing, performance testing, or deployment-specific verification.\n\n## Security
 
 JWT secret is loaded from the environment, and protected API routes require valid bearer tokens and role/ownership checks. Review [SECURITY.md](SECURITY.md) before deploying. The original source archive contained a local environment file; credentials in that file should be rotated if exposed elsewhere.
 
