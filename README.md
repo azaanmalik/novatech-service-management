@@ -19,10 +19,11 @@ Full-stack web engineering project for managing digital service requests, bookin
 ## Local setup
 
 1. Install Node.js and start a MongoDB server.
-2. Copy `server/.env.example` to `server/.env` and configure values. Set `ADMIN_EMAIL` to the intended administrator's email. Register that account normally, then run `cd server && npm run promote-admin` once locally to grant admin access. Public registration never grants admin privileges.
+2. Copy `server/.env.example` to `server/.env` and configure values. Set `ADMIN_EMAIL` to the intended administrator's email.
 3. Run `cd server && npm ci && npm start`.
-4. In another terminal copy `client/.env.example` to `client/.env`, then run `cd client && npm ci && npm run dev`.
-5. Open the local Vite URL shown in the terminal.
+4. Register the intended administrator account normally, then stop the server and run `npm run promote-admin` from `server/` to grant the admin role. Restart the server. Public registration never grants admin privileges.
+5. In another terminal copy `client/.env.example` to `client/.env`, then run `cd client && npm ci && npm run dev`.
+6. Open the local Vite URL shown in the terminal.
 
 Never commit `.env` files. Administrator promotion is a separate local database operation; never expose it as a public API. The contact endpoint currently returns HTTP 501 because no email delivery provider is configured.
 
